@@ -76,7 +76,6 @@ if not st.session_state.logged_in:
           if user_data:
             # Récupération propre via les clés du dictionnaire (plus d'erreur de dépaquetage !)
             user = user_data[0]
-            user_id = user["id"]
             db_username = user["username"]
             db_password = user["password"]
             db_role = user["Role"]
@@ -84,7 +83,6 @@ if not st.session_state.logged_in:
             if str(db_password) == str(password_input):
               st.session_state.logged_in = True
               st.session_state.current_user = db_username
-              st.session_state.user_id = user_id
               st.session_state.user_role = db_role
               st.success(f"Bienvenue {db_username} !")
               st.rerun()
