@@ -101,16 +101,14 @@ if not st.session_state.logged_in:
     if st.button("Se connecter", use_container_width=True):
       if username_input and password_input:
         # Sélection sécurisée uniquement des colonnes nécessaires
-       # Requête insensible à la casse et aux espaces superflus
         user_data = run_query(
-            "SELECT nom, password FROM users WHERE LOWER(TRIM(nom)) ="
-            " LOWER(TRIM(%s))",
+            "SELECT username, password FROM users WHERE nom = %s",
             (username_input,),
             fetch=True,
         )
 
         if user_data:
-          db_nom, db_password = user_data[0]
+          db_username, db_password = user_data[0]
 
           # Vérification du mot de passe
           if str(db_password) == str(password_input):
@@ -125,7 +123,6 @@ if not st.session_state.logged_in:
       else:
         st.warning("Veuillez remplir tous les champs.")
   st.stop()
-
 # ==========================================
 # BARRE LATÉRALE DE NAVIGATION
 # ==========================================
