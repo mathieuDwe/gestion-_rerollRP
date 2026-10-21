@@ -105,7 +105,6 @@ if not st.session_state.logged_in:
 
       if submit_login:
         if username_input and password_input:
-          # Requête insensible à la casse et aux espaces superflus
           query = """
                         SELECT id, nom, password, statuts 
                         FROM users 
@@ -116,9 +115,7 @@ if not st.session_state.logged_in:
           if user_data:
             user_id, db_nom, db_password, db_statut = user_data[0]
 
-            # Vérification du mot de passe
             if str(db_password) == str(password_input):
-              # Vérification si le compte est actif (True)
               if db_statut is False:
                 st.error(
                     "Ce compte est désactivé. Contactez un administrateur."
@@ -135,8 +132,6 @@ if not st.session_state.logged_in:
             st.error("Nom d'utilisateur introuvable dans la base de données.")
         else:
           st.warning("Veuillez remplir tous les champs.")
-  st.stop()
-
 # ==========================================
 # BARRE LATÉRALE DE NAVIGATION
 # ==========================================
