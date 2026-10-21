@@ -67,28 +67,34 @@ if not st.session_state.logged_in:
       if submit_login:
         if username_input and password_input:
           query = """
-                        SELECT * 
-                        FROM users 
+                        SELECT id, username, password, "Role" 
+                        FROM users
                         WHERE LOWER(TRIM(username)) = LOWER(TRIM(%s))
                     """
           user_data = run_query(query, (username_input,), fetch=True)
 
           if user_data:
-            user_id, db_username, db_password, db_role = user_data[0]
+            # Récupération propre via les clés du dictionnaire (plus d'erreur de dépaquetage !)
+            user = user_data[0]
+            user_id = user["id"]
+            db_username = user["username"]
+            db_password = user["password"]
+            db_role = user["Role"]
 
             if str(db_password) == str(password_input):
-                st.session_state.logged_in = True
-                st.session_state.current_user = db_username
-                st.session_state.user_id = user_id
-                st.success(f"Bienvenue {db_username} !")
-                st.rerun()
+              st.session_state.logged_in = True
+              st.session_state.current_user = db_username
+              st.session_state.user_id = user_id
+              st.session_state.user_role = db_role
+              st.success(f"Bienvenue {db_username} !")
+              st.rerun()
             else:
               st.error("Mot de passe incorrect.")
           else:
             st.error("Nom d'utilisateur introuvable dans la base de données.")
         else:
           st.warning("Veuillez remplir tous les champs.")
-  st.stop()
+st.stop()
 
 # ==========================================
 # BARRE LATÉRALE DE NAVIGATION
