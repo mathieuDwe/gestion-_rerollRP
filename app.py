@@ -251,21 +251,21 @@ elif menu == "👥 Membres":
 
     if submit_u and username and password:
       run_query(
-          "INSERT INTO users (username, prenom, \"num compte\", num, password,"
-          " statuts) VALUES (%s, %s, %s, %s, %s, %s)",
+          "INSERT INTO users (username, prenom, nom, \"num compte\", num, password,"
+          " Role) VALUES (%s, %s, %s, %s, %s, %s)",
           (username, prenom, num_compte, num, password, statuts),
       )
       st.success("Utilisateur ajouté avec succès à la base de données !")
       st.rerun()
 
   data_users = run_query(
-      "SELECT id, username, prenom, \"num compte\", num, statuts FROM users",
+      "SELECT id, username, \"num compte\", num, Role FROM users",
       fetch=True,
   )
   if data_users:
     df_users = pd.DataFrame(
         data_users,
-        columns=["ID", "Username", "Prénom", "N° Compte", "Téléphone", "Actif"],
+        columns=["ID", "Username", "Prénom", "N° Compte", "Téléphone", "Role"],
     )
     st.dataframe(df_users, use_container_width=True)
 
