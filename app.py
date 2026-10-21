@@ -100,7 +100,7 @@ if not st.session_state.logged_in:
 
     if st.button("Se connecter", use_container_width=True):
       if username_input and password_input:
-        # Requête sécurisée qui récupère exactement 2 valeurs (nom, password)
+        # Sélection sécurisée uniquement des colonnes nécessaires
         user_data = run_query(
             "SELECT username, password FROM users WHERE nom = %s",
             (username_input,),
@@ -110,6 +110,7 @@ if not st.session_state.logged_in:
         if user_data:
           db_nom, db_password = user_data[0]
 
+          # Vérification du mot de passe
           if str(db_password) == str(password_input):
             st.session_state.logged_in = True
             st.session_state.current_user = db_nom
