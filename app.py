@@ -101,8 +101,10 @@ if not st.session_state.logged_in:
     if st.button("Se connecter", use_container_width=True):
       if username_input and password_input:
         # Sélection sécurisée uniquement des colonnes nécessaires
+       # Requête insensible à la casse et aux espaces superflus
         user_data = run_query(
-            "SELECT username, password FROM users WHERE nom = %s",
+            "SELECT nom, password FROM users WHERE LOWER(TRIM(nom)) ="
+            " LOWER(TRIM(%s))",
             (username_input,),
             fetch=True,
         )
