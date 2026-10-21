@@ -76,7 +76,7 @@ def run_query(query, params=(), fetch=False):
 
 
 # ==========================================
-# SYSTÈMES DE CONNEXION (Basé sur 'users')
+# SYSTÈME DE CONNEXION (Recherche dans 'users')
 # ==========================================
 if "logged_in" not in st.session_state:
   st.session_state.logged_in = False
@@ -88,29 +88,43 @@ if not st.session_state.logged_in:
       unsafe_allow_html=True,
   )
   st.markdown(
-      "<p style='text-align: center; color: #888;'>Connexion via la base de"
-      " données des membres.</p>",
+      "<p style='text-align: center; color: #888;'>Connexion sécurisée via la"
+      " base de données des utilisateurs.</p>",
       unsafe_allow_html=True,
   )
 
   col1, col2, col3 = st.columns([1, 1, 1])
   with col2:
-    nom_input = st.text_input("Nom")
+    username_input = st.text_input("Nom d'utilisateur (nom)")
     password_input = st.text_input("Mot de passe", type="password")
 
     if st.button("Se connecter", use_container_width=True):
-      if nom_input and password_input:
+      if username_input and password_input:
+        # Requête SQL qui va chercher le mot de passe dans la table 'users'
         user_data = run_query(
-            "SELECT nom, password FROM users WHERE nom = %s",
-            (nom_input,),
+            "SELECT nom, password, statuts FROM users WHERE nom = %s",
+            (username_input,),
             fetch=True,
         )
-        if user_data and user_data[0][1] == password_input:
-          st.session_state.logged_in = True
-          st.session_state.current_user = user_data[0][0]
-          st.rerun()
+
+        if user_data:
+          db_nom, db_password, db_statut = user_data[0]
+
+          # Vérification du mot de passe et du statut actif (si géré)
+          if db_password == password_input:
+            if db_statut is False:
+              st.error(
+                  "Ce compte est désactivé. Contactez un administrateur."
+              )
+            else:
+              st.session_state.logged_in = True
+              st.session_state.current_user = db_nom
+              st.success(f"Bienvenue {db_nom} !")
+              st.rerun()
+          else:
+            st.error("Mot de passe incorrect.")
         else:
-          st.error("Nom ou mot de passe incorrect.")
+          st.error("Nom d'utilisateur introuvable dans la base de données.")
       else:
         st.warning("Veuillez remplir tous les champs.")
   st.stop()
@@ -144,7 +158,7 @@ if st.sidebar.button("Déconnexion", use_container_width=True):
 # ==========================================
 if menu == "🏠 Dashboard":
   st.title("📊 Tableau de Bord - Fafnir")
-  st.write(f"Bienvenue, {st.session_state.current_user}.")
+  st.write(f"Bienvenue sur l'espace d'administration, {st.session_state.current_user}.")
 
   try:
     nb_stock = len(run_query("SELECT * FROM object", fetch=True))
@@ -156,7 +170,7 @@ if menu == "🏠 Dashboard":
 
   col1, col2, col3, col4 = st.columns(4)
   col1.metric("📦 Objets en Stock", nb_stock)
-  col2.metric("👥 Membres", nb_membres)
+  col2.metric("👥 Membres Inscrits", nb_membres)
   col3.metric("📖 Contacts Annuaire", nb_contacts)
   col4.metric("⚖️ Amendes / Récidives", nb_amendes)
 
@@ -206,20 +220,20 @@ elif menu == "📦 Stockage":
 # ONGLET 2 : MEMBRES (Table 'users')
 # ==========================================
 elif menu == "👥 Membres":
-  st.title("👥 Annuaire Interne - Membres")
+  st.title("👥 Annuaire Interne & Gestion des Comptes")
 
   with st.form("form_user"):
     col1, col2, col3 = st.columns(3)
-    nom = col1.text_input("Nom")
+    nom = col1.text_input("Nom (Identifiant de connexion)")
     prenom = col2.text_input("Prénom")
     num_compte = col3.text_input("Numéro de compte")
 
     col4, col5, col6 = st.columns(3)
     num = col4.number_input("Numéro de téléphone", value=0, step=1)
-    password = col5.text_input("Mot de passe", type="password")
-    statuts = col6.checkbox("Statut Actif", value=True)
+    password = col5.text_input("Mot de passe de connexion", type="password")
+    statuts = col6.checkbox("Compte Actif", value=True)
 
-    submit_u = st.form_submit_button("Ajouter le membre")
+    submit_u = st.form_submit_button("Créer l'utilisateur")
 
     if submit_u and nom and password:
       run_query(
@@ -227,7 +241,7 @@ elif menu == "👥 Membres":
           " statuts) VALUES (%s, %s, %s, %s, %s, %s)",
           (nom, prenom, num_compte, num, password, statuts),
       )
-      st.success("Membre ajouté !")
+      st.success("Utilisateur ajouté avec succès à la base de données !")
       st.rerun()
 
   data_users = run_query(
@@ -249,7 +263,7 @@ elif menu == "👥 Membres":
       st.warning("Membre supprimé.")
       st.rerun()
   else:
-    st.info("Aucun membre.")
+    st.info("Aucun utilisateur dans la base.")
 
 # ==========================================
 # ONGLET 3 : ANNUAIRE (Table 'annuaire')
@@ -312,7 +326,7 @@ elif menu == "⚖️ Récidive":
           " %s)",
           (recidive_time, membre_r, motif_r),
       )
-      st.success("Enregistré.")
+      st.success("Incident enregistré.")
       st.rerun()
 
   data_amende = run_query(
@@ -340,14 +354,11 @@ elif menu == "⚖️ Récidive":
       st.warning("Supprimé.")
       st.rerun()
   else:
-    st.info("Aucune donnée.")
+    st.info("Aucun incident enregistré.")
 
 # ==========================================
 # ONGLET 5 : INFO
 # ==========================================
 elif menu == "ℹ️ Info":
   st.title("ℹ️ Informations Internes")
-  st.info(
-      "Espace d'affichage rapide pour les consignes et informations du"
-      " groupe."
-  )
+  st.info("Consignes générales pour le groupe Fafnir.")
