@@ -7,7 +7,7 @@ from views import (
     dashboard,
     info,
     membres,
-    mon_compte,
+    profile,
     recidive,
     stockage,
 )
