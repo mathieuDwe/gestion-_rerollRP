@@ -66,23 +66,26 @@ if not st.session_state.logged_in:
 
       if submit_login:
         if username_input and password_input:
+          # On sélectionne explicitement et dans l'ordre exact ces 4 colonnes
           query = """
                         SELECT id, username, password, "Role" 
-                        FROM users
+                        FROM users 
                         WHERE LOWER(TRIM(username)) = LOWER(TRIM(%s))
                     """
           user_data = run_query(query, (username_input,), fetch=True)
 
           if user_data:
-            # Récupération propre via les clés du dictionnaire (plus d'erreur de dépaquetage !)
+            # Récupération sécurisée par index (0: id, 1: username, 2: password, 3: Role)
             user = user_data[0]
-            db_username = user["username"]
-            db_password = user["password"]
-            db_role = user["Role"]
+            user_id = user[0]
+            db_username = user[1]
+            db_password = user[2]
+            db_role = user[3]
 
             if str(db_password) == str(password_input):
               st.session_state.logged_in = True
               st.session_state.current_user = db_username
+              st.session_state.user_id = user_id
               st.session_state.user_role = db_role
               st.success(f"Bienvenue {db_username} !")
               st.rerun()
