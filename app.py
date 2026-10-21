@@ -80,7 +80,8 @@ def run_query(query, params=(), fetch=False):
 # ==========================================
 if "logged_in" not in st.session_state:
   st.session_state.logged_in = False
-  st.session_state.current_user = ""
+  st.session_state.current_user = None
+  st.session_state.user_id = None
 
 if not st.session_state.logged_in:
   st.markdown(
@@ -88,39 +89,52 @@ if not st.session_state.logged_in:
       unsafe_allow_html=True,
   )
   st.markdown(
-      "<p style='text-align: center; color: #888;'>Connexion sécurisée via la"
-      " base de données des utilisateurs.</p>",
+      "<p style='text-align: center; color: #888;'>Portail sécurisé de"
+      " gestion interne.</p>",
       unsafe_allow_html=True,
   )
 
   col1, col2, col3 = st.columns([1, 1, 1])
   with col2:
-    username_input = st.text_input("Nom d'utilisateur (nom)")
-    password_input = st.text_input("Mot de passe", type="password")
+    with st.form("login_form"):
+      username_input = st.text_input("Nom d'utilisateur")
+      password_input = st.text_input("Mot de passe", type="password")
+      submit_login = st.form_submit_button(
+          "Se connecter", use_container_width=True
+      )
 
-    if st.button("Se connecter", use_container_width=True):
-      if username_input and password_input:
-        # Requête sécurisée qui récupère exactement 2 valeurs (nom, password)
-        user_data = run_query(
-            "SELECT username, password FROM users WHERE nom = %s",
-            (username_input,),
-            fetch=True,
-        )
+      if submit_login:
+        if username_input and password_input:
+          # Requête insensible à la casse et aux espaces superflus
+          query = """
+                        SELECT id, nom, password, statuts 
+                        FROM users 
+                        WHERE LOWER(TRIM(nom)) = LOWER(TRIM(%s))
+                    """
+          user_data = run_query(query, (username_input,), fetch=True)
 
-        if user_data:
-          db_nom, db_password = user_data[0]
+          if user_data:
+            user_id, db_nom, db_password, db_statut = user_data[0]
 
-          if str(db_password) == str(password_input):
-            st.session_state.logged_in = True
-            st.session_state.current_user = db_nom
-            st.success(f"Bienvenue {db_nom} !")
-            st.rerun()
+            # Vérification du mot de passe
+            if str(db_password) == str(password_input):
+              # Vérification si le compte est actif (True)
+              if db_statut is False:
+                st.error(
+                    "Ce compte est désactivé. Contactez un administrateur."
+                )
+              else:
+                st.session_state.logged_in = True
+                st.session_state.current_user = db_nom
+                st.session_state.user_id = user_id
+                st.success(f"Bienvenue {db_nom} !")
+                st.rerun()
+            else:
+              st.error("Mot de passe incorrect.")
           else:
-            st.error("Mot de passe incorrect.")
+            st.error("Nom d'utilisateur introuvable dans la base de données.")
         else:
-          st.error("Nom d'utilisateur introuvable dans la base de données.")
-      else:
-        st.warning("Veuillez remplir tous les champs.")
+          st.warning("Veuillez remplir tous les champs.")
   st.stop()
 
 # ==========================================
