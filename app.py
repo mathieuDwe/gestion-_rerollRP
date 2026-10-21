@@ -144,4 +144,4 @@ elif menu == "⚖️ Récidive":
 elif menu == "ℹ️ Info":
   info.render()
 elif menu == "⚙️ Mon Compte":
-  mon_compte.render()
+  profile.render()
