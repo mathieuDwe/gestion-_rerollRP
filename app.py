@@ -95,14 +95,14 @@ if not st.session_state.logged_in:
 
   col1, col2, col3 = st.columns([1, 1, 1])
   with col2:
-    username_input = st.text_input("Nom d'utilisateur (nom)")
+    username_input = st.text_input("Nom d'utilisateur (username)")
     password_input = st.text_input("Mot de passe", type="password")
 
     if st.button("Se connecter", use_container_width=True):
       if username_input and password_input:
         # Requête SQL qui va chercher le mot de passe dans la table 'users'
         user_data = run_query(
-            "SELECT nom, password, statuts FROM users WHERE nom = %s",
+            "SELECT username, password, statuts FROM users WHERE username = %s",
             (username_input,),
             fetch=True,
         )
