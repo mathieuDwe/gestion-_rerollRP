@@ -102,7 +102,7 @@ if not st.session_state.logged_in:
       if username_input and password_input:
         # Requête SQL qui va chercher le mot de passe dans la table 'users'
         user_data = run_query(
-            "SELECT username, password FROM users WHERE username = %s",
+            "SELECT username, password, statuts FROM users WHERE username = %s",
             (username_input,),
             fetch=True,
         )
