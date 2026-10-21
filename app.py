@@ -67,21 +67,16 @@ if not st.session_state.logged_in:
       if submit_login:
         if username_input and password_input:
           query = """
-                        SELECT id, username, password, statuts 
+                        SELECT * 
                         FROM users 
                         WHERE LOWER(TRIM(username)) = LOWER(TRIM(%s))
                     """
           user_data = run_query(query, (username_input,), fetch=True)
 
           if user_data:
-            user_id, db_username, db_password, db_statut = user_data[0]
+            user_id, db_username, db_password, db_role = user_data[0]
 
             if str(db_password) == str(password_input):
-              if db_statut is False:
-                st.error(
-                    "Ce compte est désactivé. Contactez un administrateur."
-                )
-              else:
                 st.session_state.logged_in = True
                 st.session_state.current_user = db_username
                 st.session_state.user_id = user_id
