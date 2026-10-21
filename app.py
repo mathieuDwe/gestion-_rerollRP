@@ -76,7 +76,7 @@ def run_query(query, params=(), fetch=False):
 
 
 # ==========================================
-# SYSTÈME DE CONNEXION 
+# SYSTÈME DE CONNEXION (Corrigé)
 # ==========================================
 if "logged_in" not in st.session_state:
   st.session_state.logged_in = False
@@ -95,12 +95,12 @@ if not st.session_state.logged_in:
 
   col1, col2, col3 = st.columns([1, 1, 1])
   with col2:
-    username_input = st.text_input("Nom d'utilisateur (username)")
+    username_input = st.text_input("Nom d'utilisateur (nom)")
     password_input = st.text_input("Mot de passe", type="password")
 
     if st.button("Se connecter", use_container_width=True):
       if username_input and password_input:
-        # Sélection sécurisée uniquement des colonnes nécessaires
+        # Requête sécurisée qui récupère exactement 2 valeurs (nom, password)
         user_data = run_query(
             "SELECT username, password FROM users WHERE nom = %s",
             (username_input,),
@@ -108,9 +108,8 @@ if not st.session_state.logged_in:
         )
 
         if user_data:
-          db_username, db_password = user_data[0]
+          db_nom, db_password = user_data[0]
 
-          # Vérification du mot de passe
           if str(db_password) == str(password_input):
             st.session_state.logged_in = True
             st.session_state.current_user = db_nom
@@ -123,6 +122,7 @@ if not st.session_state.logged_in:
       else:
         st.warning("Veuillez remplir tous les champs.")
   st.stop()
+
 # ==========================================
 # BARRE LATÉRALE DE NAVIGATION
 # ==========================================
