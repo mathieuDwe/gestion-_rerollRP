@@ -76,12 +76,11 @@ def run_query(query, params=(), fetch=False):
 
 
 # ==========================================
-# SYSTÈME DE CONNEXION (Basé sur 'username')
+# SYSTÈME DE CONNEXION (Corrigé)
 # ==========================================
 if "logged_in" not in st.session_state:
   st.session_state.logged_in = False
-  st.session_state.current_user = None
-  st.session_state.user_id = None
+  st.session_state.current_user = ""
 
 if not st.session_state.logged_in:
   st.markdown(
@@ -89,49 +88,39 @@ if not st.session_state.logged_in:
       unsafe_allow_html=True,
   )
   st.markdown(
-      "<p style='text-align: center; color: #888;'>Portail sécurisé de"
-      " gestion interne.</p>",
+      "<p style='text-align: center; color: #888;'>Connexion sécurisée via la"
+      " base de données des utilisateurs.</p>",
       unsafe_allow_html=True,
   )
 
   col1, col2, col3 = st.columns([1, 1, 1])
   with col2:
-    with st.form("login_form"):
-      username_input = st.text_input("Nom d'utilisateur (username)")
-      password_input = st.text_input("Mot de passe", type="password")
-      submit_login = st.form_submit_button(
-          "Se connecter", use_container_width=True
-      )
+    username_input = st.text_input("Nom d'utilisateur (nom)")
+    password_input = st.text_input("Mot de passe", type="password")
 
-      if submit_login:
-        if username_input and password_input:
-          query = """
-                        SELECT id, username, password, statuts 
-                        FROM users 
-                        WHERE LOWER(TRIM(username)) = LOWER(TRIM(%s))
-                    """
-          user_data = run_query(query, (username_input,), fetch=True)
+    if st.button("Se connecter", use_container_width=True):
+      if username_input and password_input:
+        # Requête sécurisée qui récupère exactement 2 valeurs (nom, password)
+        user_data = run_query(
+            "SELECT nom, password FROM users WHERE nom = %s",
+            (username_input,),
+            fetch=True,
+        )
 
-          if user_data:
-            user_id, db_username, db_password, db_statut = user_data[0]
+        if user_data:
+          db_nom, db_password = user_data[0]
 
-            if str(db_password) == str(password_input):
-              if db_statut is False:
-                st.error(
-                    "Ce compte est désactivé. Contactez un administrateur."
-                )
-              else:
-                st.session_state.logged_in = True
-                st.session_state.current_user = db_username
-                st.session_state.user_id = user_id
-                st.success(f"Bienvenue {db_username} !")
-                st.rerun()
-            else:
-              st.error("Mot de passe incorrect.")
+          if str(db_password) == str(password_input):
+            st.session_state.logged_in = True
+            st.session_state.current_user = db_nom
+            st.success(f"Bienvenue {db_nom} !")
+            st.rerun()
           else:
-            st.error("Nom d'utilisateur introuvable dans la base de données.")
+            st.error("Mot de passe incorrect.")
         else:
-          st.warning("Veuillez remplir tous les champs.")
+          st.error("Nom d'utilisateur introuvable dans la base de données.")
+      else:
+        st.warning("Veuillez remplir tous les champs.")
   st.stop()
 
 # ==========================================
@@ -163,8 +152,7 @@ menu = st.sidebar.radio(
 st.sidebar.markdown("---")
 if st.sidebar.button("Déconnexion", use_container_width=True):
   st.session_state.logged_in = False
-  st.session_state.current_user = None
-  st.session_state.user_id = None
+  st.session_state.current_user = ""
   st.rerun()
 
 # ==========================================
@@ -231,14 +219,14 @@ elif menu == "📦 Stockage":
     st.info("Stock vide.")
 
 # ==========================================
-# ONGLET 2 : MEMBRES (Table 'users')
+# ONGLET 2 : MEMBRES
 # ==========================================
 elif menu == "👥 Membres":
   st.title("👥 Annuaire Interne & Gestion des Comptes")
 
   with st.form("form_user"):
     col1, col2, col3 = st.columns(3)
-    username = col1.text_input("Nom d'utilisateur (username)")
+    nom = col1.text_input("Nom (Identifiant de connexion)")
     prenom = col2.text_input("Prénom")
     num_compte = col3.text_input("Numéro de compte")
 
@@ -249,23 +237,23 @@ elif menu == "👥 Membres":
 
     submit_u = st.form_submit_button("Créer l'utilisateur")
 
-    if submit_u and username and password:
+    if submit_u and nom and password:
       run_query(
-          "INSERT INTO users (username, prenom, nom, \"num compte\", num, password,"
-          " Role) VALUES (%s, %s, %s, %s, %s, %s)",
-          (username, prenom, num_compte, num, password, statuts),
+          "INSERT INTO users (nom, prenom, \"num compte\", num, password,"
+          " statuts) VALUES (%s, %s, %s, %s, %s, %s)",
+          (nom, prenom, num_compte, num, password, statuts),
       )
       st.success("Utilisateur ajouté avec succès à la base de données !")
       st.rerun()
 
   data_users = run_query(
-      "SELECT id, username, \"num compte\", num, Role FROM users",
+      "SELECT id, nom, prenom, \"num compte\", num, statuts FROM users",
       fetch=True,
   )
   if data_users:
     df_users = pd.DataFrame(
         data_users,
-        columns=["ID", "Username", "Prénom", "N° Compte", "Téléphone", "Role"],
+        columns=["ID", "Nom", "Prénom", "N° Compte", "Téléphone", "Actif"],
     )
     st.dataframe(df_users, use_container_width=True)
 
@@ -378,19 +366,18 @@ elif menu == "ℹ️ Info":
   st.info("Consignes générales pour le groupe Fafnir.")
 
 # ==========================================
-# ONGLET 6 : MON COMPTE (Profil utilisateur)
+# ONGLET 6 : MON COMPTE (Espace utilisateur)
 # ==========================================
 elif menu == "⚙️ Mon Compte":
   st.title("⚙️ Gestion de mon profil")
   st.write(
-      f"Connecté en tant que : **{st.session_state.current_user}** (Username"
-      " fixe)"
+      f"Connecté en tant que : **{st.session_state.current_user}** (Nom non"
+      " modifiable)"
   )
 
-  # Récupérer les données actualisées avec 'username'
+  # Récupérer les données actuelles de l'utilisateur connecté
   user_info = run_query(
-      "SELECT prenom, \"num compte\", num, password FROM users WHERE username ="
-      " %s",
+      "SELECT prenom, \"num compte\", num, password FROM users WHERE nom = %s",
       (st.session_state.current_user,),
       fetch=True,
   )
@@ -402,7 +389,7 @@ elif menu == "⚙️ Mon Compte":
     cur_pass = user_info[0][3] if user_info[0][3] else ""
 
     with st.form("form_update_profile"):
-      st.subheader("Modifier mes informations")
+      st.subheader("Modifier mes métadonnées")
       new_prenom = st.text_input("Prénom", value=cur_prenom)
       new_num_compte = st.text_input("Numéro de compte", value=cur_num_compte)
       new_num = st.number_input("Numéro de téléphone", value=cur_num, step=1)
@@ -415,7 +402,7 @@ elif menu == "⚙️ Mon Compte":
       if submit_update:
         run_query(
             "UPDATE users SET prenom = %s, \"num compte\" = %s, num = %s,"
-            " password = %s WHERE username = %s",
+            " password = %s WHERE nom = %s",
             (
                 new_prenom,
                 new_num_compte,
