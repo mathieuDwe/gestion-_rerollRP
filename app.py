@@ -27,10 +27,26 @@ st.markdown(
     .stApp { background-color: #0b0b0b; color: #ffffff; }
     [data-testid="stSidebar"] { background-color: #121212; border-right: 1px solid #ff0033; }
     h1, h2, h3 { color: #ff0033 !important; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    .stButton>button { background-color: #ff0033; color: black; border-radius: 6px; border: none; font-weight: bold; transition: 0.3s; }
-    .stButton>button:hover { background-color: #cc0029; color: black; }
+    
+    /* Style personnalisé pour TOUS les boutons (classiques et formulaires) */
+    .stButton > button, [data-testid="stFormSubmitButton"] > button {
+        background-color: #1a1a1a !important;
+        color: #FF0000 !important;
+        border: 1px solid #ff0033 !important;
+        border-radius: 6px !important;
+        font-weight: bold !important;
+        transition: 0.3s;
+    }
+    
+    /* Effet au survol (devient rouge plein) */
+    .stButton > button:hover, [data-testid="stFormSubmitButton"] > button:hover {
+        background-color: #ff0033 !important;
+        color: #FF0000 !important;
+        border-color: #ff0033 !important;
+    }
+
     .stTextInput>div>div>input, .stNumberInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {
-        background-color: #1a1a1a; color: grey; border: 1px solid #333333; border-radius: 5px;
+        background-color: #1a1a1a; color: white; border: 1px solid #333333; border-radius: 5px;
     }
     div.stMarkdown { color: #e0e0e0; }
     </style>
