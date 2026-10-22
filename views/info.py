@@ -22,7 +22,7 @@ def render():
       else:
         # Insertion avec l'ID utilisateur
         run_query(
-            "INSERT INTO info (titre, contenu, user_id) VALUES (%s, %s, %s)",
+            "INSERT INTO infos (titre, contenu, user_id) VALUES (%s, %s, %s)",
             (titre, contenu, user_id),
         )
         st.success("Information publiée avec succès !")
@@ -66,7 +66,7 @@ def render():
 
         if submit_mod and id_mod > 0:
           run_query(
-              "UPDATE info SET titre = %s, contenu = %s WHERE id = %s",
+              "UPDATE infos SET titre = %s, contenu = %s WHERE id = %s",
               (new_titre, new_contenu, id_mod),
           )
           st.success(f"Information ID {id_mod} mise à jour avec succès !")
@@ -85,7 +85,7 @@ def render():
         submit_del = st.form_submit_button("Supprimer")
 
         if submit_del and id_del > 0:
-          run_query("DELETE FROM info WHERE id = %s", (id_del,))
+          run_query("DELETE FROM infos WHERE id = %s", (id_del,))
           st.warning("Information supprimée.")
           st.rerun()
   else:
