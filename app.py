@@ -17,7 +17,7 @@ from views import (
 # ==========================================
 st.set_page_config(
     page_title="Fafnir - Gestion Interne",
-    page_icon="logo.png",  # Mets ici le nom exact de ton fichier image (ex: logo.png ou logo.jpg)
+    page_icon="dragon.jpg",  # Mets ici le nom exact de ton fichier image (ex: logo.png ou logo.jpg)
     layout="wide",
 )
 
