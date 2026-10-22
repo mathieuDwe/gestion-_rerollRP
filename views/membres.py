@@ -24,18 +24,18 @@ def render():
     submit_u = st.form_submit_button("Créer l'utilisateur")
 
     if submit_u and username and password:
-      # Ajout des guillemets autour de "Role" et "num Compte"
+      # Utilisation de "num compte" en minuscules
       run_query(
           "INSERT INTO users (username, password, \"Role\", nom, prenom, \"num"
-          " Compte\", num, statuts) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+          " compte\", num, statuts) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
           (username, password, role, nom, prenom, num_compte, num, statuts),
       )
       st.success("Utilisateur ajouté avec succès à la base de données !")
       st.rerun()
 
-  # Correction de la sélection avec "Role" entre guillemets
+  # Utilisation de "num compte" en minuscules
   data_users = run_query(
-      'SELECT id, username, "Role", nom, prenom, "num Compte", num, statuts'
+      'SELECT id, username, "Role", nom, prenom, "num compte", num, statuts'
       " FROM users",
       fetch=True,
   )
@@ -53,9 +53,7 @@ def render():
             "Actif",
         ],
     )
-    df_users = df_users.astype(
-        {"ID": int}
-    )  # Nettoyage visuel propre pour les IDs
+    df_users = df_users.astype({"ID": int})
     st.dataframe(df_users, use_container_width=True)
 
     with st.form("form_del_user"):
