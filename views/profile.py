@@ -6,9 +6,9 @@ def render():
   st.title("⚙️ Gestion de mon profil")
   st.write(f"Connecté en tant que : **{st.session_state.current_user}**")
 
-  # Ajout des guillemets doubles autour de "Role" pour respecter la casse
+  # Utilisation de "num compte" en minuscules
   user_info = run_query(
-      "SELECT nom, prenom, \"num Compte\", num, password, \"Role\" FROM users"
+      "SELECT nom, prenom, \"num compte\", num, password, \"Role\" FROM users"
       " WHERE username = %s",
       (st.session_state.current_user,),
       fetch=True,
@@ -38,7 +38,7 @@ def render():
 
       if submit_update:
         run_query(
-            "UPDATE users SET nom = %s, prenom = %s, \"num Compte\" = %s, num ="
+            "UPDATE users SET nom = %s, prenom = %s, \"num compte\" = %s, num ="
             " %s, password = %s WHERE username = %s",
             (
                 new_nom,
