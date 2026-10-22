@@ -23,14 +23,13 @@ def render():
 
     col7, col8 = st.columns(2)
     num = col7.number_input("Numéro de téléphone", value=0, step=1)
-    statuts = col8.checkbox("Compte Actif", value=True)
 
     submit_u = st.form_submit_button("Créer l'utilisateur")
 
     if submit_u and username and password:
       run_query(
           "INSERT INTO users (username, password, \"Role\", nom, prenom, \"num"
-          " compte\", num, statuts) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+          " compte\", num) VALUES (%s, %s, %s, %s, %s, %s, %s)",
           (username, password, role, nom, prenom, num_compte, num, statuts),
       )
       st.success("Utilisateur ajouté avec succès à la base de données !")
@@ -40,7 +39,7 @@ def render():
 
   # --- AFFICHAGE DES MEMBRES ---
   data_users = run_query(
-      'SELECT id, username, "Role", nom, prenom, "num compte", num, statuts'
+      'SELECT id, username, "Role", nom, prenom, "num compte", num'
       " FROM users",
       fetch=True,
   )
@@ -55,7 +54,7 @@ def render():
             "Prénom",
             "N° Compte",
             "Téléphone",
-            "Actif",
+           
         ],
     )
     df_users = df_users.astype({"ID": int})
