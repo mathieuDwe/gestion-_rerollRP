@@ -41,7 +41,7 @@ st.markdown(
     /* Effet au survol (devient rouge plein) */
     .stButton > button:hover, [data-testid="stFormSubmitButton"] > button:hover {
         background-color: #ff0033 !important;
-        color: #FF0000 !important;
+        color: #FFFFFF !important;
         border-color: #ff0033 !important;
     }
 
