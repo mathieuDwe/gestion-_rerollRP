@@ -16,7 +16,9 @@ from views import (
 # CONFIGURATION DE LA PAGE & DESIGN CSS
 # ==========================================
 st.set_page_config(
-    page_title="Fafnir - Gestion Interne", page_icon="🔴", layout="wide"
+    page_title="Fafnir - Gestion Interne",
+    page_icon="logo.png",  # Mets ici le nom exact de ton fichier image (ex: logo.png ou logo.jpg)
+    layout="wide",
 )
 
 st.markdown(
@@ -25,10 +27,10 @@ st.markdown(
     .stApp { background-color: #0b0b0b; color: #ffffff; }
     [data-testid="stSidebar"] { background-color: #121212; border-right: 1px solid #ff0033; }
     h1, h2, h3 { color: #ff0033 !important; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    .stButton>button { background-color: #ff0033; color: white; border-radius: 6px; border: none; font-weight: bold; transition: 0.3s; }
+    .stButton>button { background-color: #ff0033; color: black; border-radius: 6px; border: none; font-weight: bold; transition: 0.3s; }
     .stButton>button:hover { background-color: #cc0029; color: white; }
     .stTextInput>div>div>input, .stNumberInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {
-        background-color: #1a1a1a; color: white; border: 1px solid #333333; border-radius: 5px;
+        background-color: #1a1a1a; color: grey; border: 1px solid #333333; border-radius: 5px;
     }
     div.stMarkdown { color: #e0e0e0; }
     </style>
