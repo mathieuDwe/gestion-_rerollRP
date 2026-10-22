@@ -39,7 +39,7 @@ def render():
 
   # --- AFFICHAGE DES MEMBRES ---
   data_users = run_query(
-      'SELECT id, username, "Role", nom, prenom, "num compte", num'
+      'SELECT id, "Role", prenom, nom, username, "num compte", num'
       " FROM users",
       fetch=True,
   )
@@ -47,14 +47,13 @@ def render():
     df_users = pd.DataFrame(
         data_users,
         columns=[
-            "ID",
-            "Rôle",
-            "prenom",
-            "Nom",
-            "Username",
-            "N° Compte",
-            "Téléphone",
-           
+          "ID",
+          "Rôle",
+          "prenom",
+          "nom",
+          "Username",
+          "N° Compte",
+          "Téléphone" 
         ],
     )
     df_users = df_users.astype({"ID": int})
