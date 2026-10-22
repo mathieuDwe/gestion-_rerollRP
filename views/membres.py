@@ -12,7 +12,9 @@ def render():
     col1, col2, col3 = st.columns(3)
     username = col1.text_input("Nom d'utilisateur (Username de connexion)")
     password = col2.text_input("Mot de passe", type="password")
-    role = col3.selectbox("Rôle", ["Membre", "Responsable", "Admin"])
+    role = col3.text_input(
+        "Rôle", value="Membre"
+    )  # Saisie libre du rôle avec valeur par défaut
 
     col4, col5, col6 = st.columns(3)
     nom = col4.text_input("Nom")
@@ -21,15 +23,15 @@ def render():
 
     col7, col8 = st.columns(2)
     num = col7.number_input("Numéro de téléphone", value=0, step=1)
-    statut = col8.checkbox("Compte Actif", value=True)
+    statuts = col8.checkbox("Compte Actif", value=True)
 
     submit_u = st.form_submit_button("Créer l'utilisateur")
 
     if submit_u and username and password:
       run_query(
           "INSERT INTO users (username, password, \"Role\", nom, prenom, \"num"
-          " compte\", num) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-          (username, password, role, nom, prenom, num_compte, num),
+          " compte\", num, statuts) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+          (username, password, role, nom, prenom, num_compte, num, statuts),
       )
       st.success("Utilisateur ajouté avec succès à la base de données !")
       st.rerun()
@@ -38,7 +40,7 @@ def render():
 
   # --- AFFICHAGE DES MEMBRES ---
   data_users = run_query(
-      'SELECT id, username, "Role", nom, prenom, "num compte", num'
+      'SELECT id, username, "Role", nom, prenom, "num compte", num, statuts'
       " FROM users",
       fetch=True,
   )
@@ -52,8 +54,8 @@ def render():
             "Nom",
             "Prénom",
             "N° Compte",
-            "Téléphone"
-            
+            "Téléphone",
+            "Actif",
         ],
     )
     df_users = df_users.astype({"ID": int})
@@ -68,12 +70,12 @@ def render():
         id_role = st.number_input(
             "ID du membre", min_value=0, step=1, key="role_id"
         )
-        new_role = st.selectbox(
-            "Nouveau rôle", ["Membre", "N1", "N2,"N3"], key="role_select"
-        )
+        new_role = st.text_input(
+            "Nouveau rôle", key="role_select"
+        )  # Saisie libre pour la modification
         submit_role = st.form_submit_button("Mettre à jour le rôle")
 
-        if submit_role:
+        if submit_role and new_role:
           run_query(
               'UPDATE users SET "Role" = %s WHERE id = %s',
               (new_role, id_role),
