@@ -14,13 +14,11 @@ def render():
     submit_add = st.form_submit_button("Publier")
 
     if submit_add and titre and contenu:
-      # Récupération de l'ID du membre connecté dans la session
       user_id = st.session_state.get("user_id")
 
       if not user_id:
         st.error("Erreur : Impossible d'identifier l'utilisateur connecté.")
       else:
-        # Insertion avec l'ID utilisateur
         run_query(
             "INSERT INTO infos (titre, contenu, user_id) VALUES (%s, %s, %s)",
             (titre, contenu, user_id),
@@ -30,14 +28,13 @@ def render():
 
   st.markdown("---")
 
-  # --- AFFICHAGE DES INFORMATIONS (AVEC JOINTURE USERS) ---
-  # On récupère le username de la table users grâce à la liaison par l'ID
+  # --- AFFICHAGE (AVEC LA TABLE INFOS) ---
   data_info = run_query(
       """
-        SELECT info.id, info.titre, info.contenu, users.username 
-        FROM infos 
-        LEFT JOIN users ON info.user_id = users.id 
-        ORDER BY info.id DESC
+        SELECT i.id, i.titre, i.contenu, u.username 
+        FROM infos i 
+        LEFT JOIN users u ON i.user_id = u.id 
+        ORDER BY i.id DESC
     """,
       fetch=True,
   )
