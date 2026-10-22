@@ -19,23 +19,21 @@ def render():
 
     col7, col8 = st.columns(2)
     num = col7.number_input("Numéro de téléphone", value=0, step=1)
-    statut = col8.checkbox("Compte Actif", value=True)
-
+    
     submit_u = st.form_submit_button("Créer l'utilisateur")
 
     if submit_u and username and password:
-      # Utilisation de "statut" au singulier
       run_query(
           "INSERT INTO users (username, password, \"Role\", nom, prenom, \"num"
-          " compte\", num, statut) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-          (username, password, role, nom, prenom, num_compte, num, statut),
+          " compte\", num) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+          (username, password, role, nom, prenom, num_compte, num),
       )
       st.success("Utilisateur ajouté avec succès à la base de données !")
       st.rerun()
 
   # Utilisation de "statut" au singulier dans le SELECT
   data_users = run_query(
-      'SELECT id, username, "Role", nom, prenom, "num compte", num, statut'
+      'SELECT id, username, "Role", nom, prenom, "num compte", num'
       " FROM users",
       fetch=True,
   )
@@ -50,7 +48,6 @@ def render():
             "Prénom",
             "N° Compte",
             "Téléphone",
-            "Actif",
         ],
     )
     df_users = df_users.astype({"ID": int})
