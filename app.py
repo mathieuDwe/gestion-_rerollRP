@@ -133,17 +133,25 @@ if st.sidebar.button("Déconnexion", use_container_width=True):
 # ==========================================
 # ROUTAGE DES VUES
 # ==========================================
-if menu == "🏠 Dashboard":
-  dashboard.render()
-elif menu == "📦 Stockage":
-  stockage.render()
-elif menu == "👥 Membres":
-  membres.render()
-elif menu == "📖 Annuaire":
-  annuaire.render()
-elif menu == "⚖️ Récidive":
-  recidive.render()
-elif menu == "ℹ️ Info":
-  info.render()
-elif menu == "⚙️ Mon Compte":
-  profile.render()
+# ==========================================
+# ROUTAGE DES VUES (AVEC SÉCURITÉ)
+# ==========================================
+try:
+  if menu == "🏠 Dashboard":
+    dashboard.render()
+  elif menu == "📦 Stockage":
+    stockage.render()
+  elif menu == "👥 Membres":
+    membres.render()
+  elif menu == "📖 Annuaire":
+    annuaire.render()
+  elif menu == "⚖️ Récidive":
+    recidive.render()
+  elif menu == "ℹ️ Info":
+    info.render()
+  elif menu == "⚙️ Mon Compte":
+    profile.render()
+except Exception as e:
+  st.error(
+      f"Une erreur est survenue lors du chargement de l'onglet '{menu}' : {e}"
+  )
