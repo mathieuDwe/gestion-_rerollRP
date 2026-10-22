@@ -46,7 +46,7 @@ st.markdown(
     }
 
     .stTextInput>div>div>input, .stNumberInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {
-        background-color: #1a1a1a; color: white; border: 1px solid #333333; border-radius: 5px;
+        background-color: #000000; color: white; border: 1px solid #333333; border-radius: 5px;
     }
     div.stMarkdown { color: #e0e0e0; }
     </style>
