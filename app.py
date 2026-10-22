@@ -9,7 +9,7 @@ from views import (
     membres,
     profile,
     recidive,
-    stockage,
+    stockage
 )
 
 # ==========================================
