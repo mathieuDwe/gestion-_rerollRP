@@ -48,10 +48,10 @@ def render():
         data_users,
         columns=[
             "ID",
-            "Username",
             "Rôle",
+            "prenom",
             "Nom",
-            "Prénom",
+            "Username",
             "N° Compte",
             "Téléphone",
            
