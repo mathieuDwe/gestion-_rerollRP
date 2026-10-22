@@ -6,9 +6,9 @@ def render():
   st.title("⚙️ Gestion de mon profil")
   st.write(f"Connecté en tant que : **{st.session_state.current_user}**")
 
-  # Récupération des données avec la nouvelle structure (attention aux majuscules/espaces)
+  # Ajout des guillemets doubles autour de "Role" pour respecter la casse
   user_info = run_query(
-      "SELECT nom, prenom, \"num Compte\", num, password, Role FROM users"
+      "SELECT nom, prenom, \"num Compte\", num, password, \"Role\" FROM users"
       " WHERE username = %s",
       (st.session_state.current_user,),
       fetch=True,
