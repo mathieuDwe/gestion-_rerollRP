@@ -28,7 +28,7 @@ st.markdown(
     [data-testid="stSidebar"] { background-color: #121212; border-right: 1px solid #ff0033; }
     h1, h2, h3 { color: #ff0033 !important; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     .stButton>button { background-color: #ff0033; color: black; border-radius: 6px; border: none; font-weight: bold; transition: 0.3s; }
-    .stButton>button:hover { background-color: #cc0029; color: white; }
+    .stButton>button:hover { background-color: #cc0029; color: black; }
     .stTextInput>div>div>input, .stNumberInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {
         background-color: #1a1a1a; color: grey; border: 1px solid #333333; border-radius: 5px;
     }
