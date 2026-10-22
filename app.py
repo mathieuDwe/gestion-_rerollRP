@@ -61,7 +61,7 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
-)
+
 
 # ==========================================
 # SYSTÈME D'AUTHENTIFICATION
