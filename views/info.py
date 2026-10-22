@@ -14,23 +14,34 @@ def render():
     submit_add = st.form_submit_button("Publier")
 
     if submit_add and titre and contenu:
-      # Récupération automatique du membre connecté dans la session
-      auteur = st.session_state.get("current_user", "Inconnu")
+      # Récupération de l'ID du membre connecté dans la session
+      user_id = st.session_state.get("user_id")
 
-      run_query(
-          "INSERT INTO info (titre, contenu, auteur) VALUES (%s, %s, %s)",
-          (titre, contenu, auteur),
-      )
-      st.success("Information publiée avec succès !")
-      st.rerun()
+      if not user_id:
+        st.error("Erreur : Impossible d'identifier l'utilisateur connecté.")
+      else:
+        # Insertion avec l'ID utilisateur
+        run_query(
+            "INSERT INTO info (titre, contenu, user_id) VALUES (%s, %s, %s)",
+            (titre, contenu, user_id),
+        )
+        st.success("Information publiée avec succès !")
+        st.rerun()
 
   st.markdown("---")
 
-  # --- AFFICHAGE DES INFORMATIONS ---
+  # --- AFFICHAGE DES INFORMATIONS (AVEC JOINTURE USERS) ---
+  # On récupère le username de la table users grâce à la liaison par l'ID
   data_info = run_query(
-      "SELECT id, titre, contenu, auteur FROM infos ORDER BY id DESC",
+      """
+        SELECT info.id, info.titre, info.contenu, users.username 
+        FROM info 
+        LEFT JOIN users ON info.user_id = users.id 
+        ORDER BY info.id DESC
+    """,
       fetch=True,
   )
+
   if data_info:
     df_info = pd.DataFrame(
         data_info, columns=["ID", "Titre", "Contenu", "Auteur"]
@@ -74,7 +85,7 @@ def render():
         submit_del = st.form_submit_button("Supprimer")
 
         if submit_del and id_del > 0:
-          run_query("DELETE FROM infos WHERE id = %s", (id_del,))
+          run_query("DELETE FROM info WHERE id = %s", (id_del,))
           st.warning("Information supprimée.")
           st.rerun()
   else:
