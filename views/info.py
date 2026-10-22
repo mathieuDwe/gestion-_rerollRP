@@ -35,7 +35,7 @@ def render():
   data_info = run_query(
       """
         SELECT info.id, info.titre, info.contenu, users.username 
-        FROM info 
+        FROM infos 
         LEFT JOIN users ON info.user_id = users.id 
         ORDER BY info.id DESC
     """,
