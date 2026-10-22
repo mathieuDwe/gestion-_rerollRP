@@ -119,15 +119,12 @@ if not st.session_state.logged_in:
 # ==========================================
 # BARRE LATÉRALE DE NAVIGATION
 # ==========================================
-# ==========================================
-# BARRE LATÉRALE DE NAVIGATION
-# ==========================================
 
 # Centrage de l'image du logo dans la sidebar
 col1, col2, col3 = st.sidebar.columns([1, 2, 1])
 with col2:
   st.image(
-      "logo.png"
+      "dragon.jpg"
   )  # Assure-toi que c'est le nom exact de ton fichier image à la racine
 
 st.sidebar.markdown(
