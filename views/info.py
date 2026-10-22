@@ -28,7 +28,7 @@ def render():
 
   # --- AFFICHAGE DES INFORMATIONS ---
   data_info = run_query(
-      "SELECT id, titre, contenu, auteur FROM info ORDER BY id DESC",
+      "SELECT id, titre, contenu, auteur FROM infos ORDER BY id DESC",
       fetch=True,
   )
   if data_info:
@@ -74,7 +74,7 @@ def render():
         submit_del = st.form_submit_button("Supprimer")
 
         if submit_del and id_del > 0:
-          run_query("DELETE FROM info WHERE id = %s", (id_del,))
+          run_query("DELETE FROM infos WHERE id = %s", (id_del,))
           st.warning("Information supprimée.")
           st.rerun()
   else:
