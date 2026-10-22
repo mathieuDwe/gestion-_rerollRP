@@ -10,7 +10,6 @@ def render():
   with st.form("form_recidive"):
     st.subheader("Ajouter une récidive")
 
-    # Récupération des utilisateurs pour les lister par pseudo
     users_data = run_query("SELECT id, username FROM users", fetch=True)
     user_dict = {u[1]: u[0] for u in users_data} if users_data else {}
 
@@ -23,36 +22,35 @@ def render():
       st.warning("Aucun utilisateur disponible.")
 
     motif = st.text_area("Motif / Infraction")
-    sanction = st.text_input("Sanction")
 
     submit = st.form_submit_button("Enregistrer la récidive")
 
     if submit and motif and selected_username:
       user_id = user_dict[selected_username]
+      # Utilisation de la colonne 'membre'
       run_query(
-          "INSERT INTO recidive (user_id, motif, sanction) VALUES (%s, %s,"
-          " %s)",
-          (user_id, motif, sanction),
+          "INSERT INTO recidive (membre, motif) VALUES (%s, %s)",
+          (user_id, motif),
       )
       st.success("Récidive enregistrée avec succès !")
       st.rerun()
 
   st.markdown("---")
 
-  # --- AFFICHAGE (AVEC JOINTURE POUR AFFICHER LE USERNAME) ---
+  # --- AFFICHAGE (AVEC LA JOINTURE SUR 'membre') ---
   data_recidive = run_query(
       """
-        SELECT recidive.id, users.username, recidive.motif, recidive.sanction 
-        FROM recidive 
-        LEFT JOIN users ON recidive.user_id = users.id 
-        ORDER BY recidive.id DESC
+        SELECT r.id, u.username, r.motif 
+        FROM recidive r 
+        LEFT JOIN users u ON r.membre = u.id 
+        ORDER BY r.id DESC
     """,
       fetch=True,
   )
 
   if data_recidive:
     df_recidive = pd.DataFrame(
-        data_recidive, columns=["ID", "Membre", "Motif", "Sanction"]
+        data_recidive, columns=["ID", "Membre", "Motif"]
     )
     df_recidive = df_recidive.astype({"ID": int})
     st.dataframe(df_recidive, use_container_width=True)
