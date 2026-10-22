@@ -28,30 +28,39 @@ st.markdown(
     [data-testid="stSidebar"] { background-color: #121212; border-right: 1px solid #ff0033; }
     h1, h2, h3 { color: #ff0033 !important; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     
-    /* Style personnalisé pour TOUS les boutons (classiques et formulaires) */
+    /* Boutons */
     .stButton > button, [data-testid="stFormSubmitButton"] > button {
         background-color: #1a1a1a !important;
-        color: #FF0000 !important;
+        color: #ffffff !important;
         border: 1px solid #ff0033 !important;
         border-radius: 6px !important;
         font-weight: bold !important;
         transition: 0.3s;
     }
     
-    /* Effet au survol (devient rouge plein) */
     .stButton > button:hover, [data-testid="stFormSubmitButton"] > button:hover {
         background-color: #ff0033 !important;
-        color: #FFFFFF !important;
+        color: #ffffff !important;
         border-color: #ff0033 !important;
     }
 
-    .stTextInput>div>div>input, .stNumberInput>div>div>input, .stTextArea>div>div>textarea, .stSelectbox>div>div>div {
-        background-color: #000000; color: white; border: 1px solid #333333; border-radius: 5px;
+    /* CORRECTION : Texte blanc bien visible dans tous les champs et zones de texte */
+    .stTextInput input, .stTextArea textarea, .stNumberInput input {
+        color: #ffffff !important;
+        background-color: #1a1a1a !important;
     }
+    
+    /* Correction pour les menus déroulants (select box) */
+    .stSelectbox div[data-baseweb="select"] {
+        background-color: #1a1a1a !important;
+        color: #ffffff !important;
+    }
+
     div.stMarkdown { color: #e0e0e0; }
     </style>
     """,
     unsafe_allow_html=True,
+)
 )
 
 # ==========================================
