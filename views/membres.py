@@ -28,8 +28,8 @@ def render():
     if submit_u and username and password:
       run_query(
           "INSERT INTO users (username, password, \"Role\", nom, prenom, \"num"
-          " compte\", num, statut) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-          (username, password, role, nom, prenom, num_compte, num, statut),
+          " compte\", num) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+          (username, password, role, nom, prenom, num_compte, num),
       )
       st.success("Utilisateur ajouté avec succès à la base de données !")
       st.rerun()
@@ -38,7 +38,7 @@ def render():
 
   # --- AFFICHAGE DES MEMBRES ---
   data_users = run_query(
-      'SELECT id, username, "Role", nom, prenom, "num compte", num, statut'
+      'SELECT id, username, "Role", nom, prenom, "num compte", num'
       " FROM users",
       fetch=True,
   )
@@ -52,8 +52,8 @@ def render():
             "Nom",
             "Prénom",
             "N° Compte",
-            "Téléphone",
-            "Actif",
+            "Téléphone"
+            
         ],
     )
     df_users = df_users.astype({"ID": int})
@@ -69,7 +69,7 @@ def render():
             "ID du membre", min_value=0, step=1, key="role_id"
         )
         new_role = st.selectbox(
-            "Nouveau rôle", ["Membre", "Responsable", "Admin"], key="role_select"
+            "Nouveau rôle", ["Membre", "N1", "N2,"N3"], key="role_select"
         )
         submit_role = st.form_submit_button("Mettre à jour le rôle")
 
