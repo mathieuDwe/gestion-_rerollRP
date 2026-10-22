@@ -19,8 +19,9 @@ def render():
       if not user_id:
         st.error("Erreur : Impossible d'identifier l'utilisateur connecté.")
       else:
+        # Utilisation de la colonne 'auteur'
         run_query(
-            "INSERT INTO infos (titre, contenu, user_id) VALUES (%s, %s, %s)",
+            "INSERT INTO infos (titre, contenu, auteur) VALUES (%s, %s, %s)",
             (titre, contenu, user_id),
         )
         st.success("Information publiée avec succès !")
@@ -28,12 +29,12 @@ def render():
 
   st.markdown("---")
 
-  # --- AFFICHAGE (AVEC LA TABLE INFOS) ---
+  # --- AFFICHAGE (AVEC LA JOINTURE SUR 'auteur') ---
   data_info = run_query(
       """
         SELECT i.id, i.titre, i.contenu, u.username 
         FROM infos i 
-        LEFT JOIN users u ON i.user_id = u.id 
+        LEFT JOIN users u ON i.auteur = u.id 
         ORDER BY i.id DESC
     """,
       fetch=True,
