@@ -24,70 +24,104 @@ def render():
   if data_obj:
     df = pd.DataFrame(data_obj, columns=column_names)
 
+    # Ajout d'une colonne de sélection (checkbox) tout au début du tableau
+    df.insert(0, "🗑️ Supprimer", False)
+
     st.info(
-        "💡 Modifie directement les cellules dans le tableau ci-dessous, puis"
-        " clique sur **'Enregistrer les modifications'** pour valider."
+        "💡 Modifie les cellules directement dans le tableau, ou coche la"
+        " case **🗑️ Supprimer** sur les lignes de ton choix."
     )
 
-    # --- MODE ÉDITION EN MASSE ---
+    # --- TABLEAU INTERACTIF AVEC CHECKBOXES DE SUPPRESSION ---
     edited_df = st.data_editor(
-        df, num_rows="dynamic", use_container_width=True, key="stock_editor"
+        df,
+        num_rows="dynamic",
+        use_container_width=True,
+        key="stock_editor",
+        column_config={
+            "🗑️ Supprimer": st.column_config.CheckboxColumn(
+                "Supprimer ?", default=False
+            ),
+            "id": st.column_config.NumberColumn("ID", disabled=True),
+        },
     )
 
-    # --- BOUTON DE SAUVEGARDE DES MODIFICATIONS ---
-    if st.button("💾 Enregistrer les modifications", type="primary"):
-      try:
-        updatable_cols = [col for col in column_names if col != "id"]
+    # Détection des lignes cochées pour la suppression
+    rows_to_delete = (
+        edited_df[edited_df["🗑️ Supprimer"] == True]
+        if "🗑️ Supprimer" in edited_df.columns
+        else pd.DataFrame()
+    )
 
-        for _, row in edited_df.iterrows():
-          row_id = row["id"]
+    col1, col2 = st.columns(2)
 
-          # Si l'ID est vide/NaN, c'est une nouvelle ligne ajoutée par l'utilisateur
-          if pd.isna(row_id):
-            cols_to_insert = [
-                c
-                for c in column_names
-                if c != "id" and not pd.isna(row[c])
-            ]
-            if cols_to_insert:
-              placeholders = ", ".join(["%s"] * len(cols_to_insert))
-              cols_str = ", ".join([f'"{c}"' for c in cols_to_insert])
-              values = tuple(row[c] for c in cols_to_insert)
-              run_query(
-                  f"INSERT INTO object ({cols_str}) VALUES ({placeholders})",
-                  values,
+    # --- 1ER BOUTON : ENREGISTRER LES MODIFICATIONS ---
+    with col1:
+      if st.button("💾 Enregistrer les modifications", type="primary"):
+        try:
+          updatable_cols = [col for col in column_names if col != "id"]
+
+          for _, row in edited_df.iterrows():
+            row_id = row["id"]
+
+            # Si la ligne est cochée pour suppression, on ignore la mise à jour
+            if (
+                "🗑️ Supprimer" in row
+                and row["🗑️ Supprimer"] == True
+                and not pd.isna(row_id)
+            ):
+              continue
+
+            if pd.isna(row_id):
+              # Nouvelle ligne ajoutée
+              cols_to_insert = [
+                  c for c in column_names if c != "id" and not pd.isna(row[c])
+              ]
+              if cols_to_insert:
+                placeholders = ", ".join(["%s"] * len(cols_to_insert))
+                cols_str = ", ".join([f'"{c}"' for c in cols_to_insert])
+                values = tuple(row[c] for c in cols_to_insert)
+                run_query(
+                    f"INSERT INTO object ({cols_str}) VALUES ({placeholders})",
+                    values,
+                )
+            else:
+              # Mise à jour d'une ligne existante
+              set_clause = ", ".join(
+                  [f'"{col}" = %s' for col in updatable_cols]
               )
-          else:
-            # Mise à jour de la ligne existante
-            set_clause = ", ".join([f'"{col}" = %s' for col in updatable_cols])
-            values = [row[col] for col in updatable_cols] + [row_id]
-            run_query(
-                f"UPDATE object SET {set_clause} WHERE id = %s", tuple(values)
+              values = [row[col] for col in updatable_cols] + [row_id]
+              run_query(
+                  f"UPDATE object SET {set_clause} WHERE id = %s",
+                  tuple(values),
+              )
+
+          st.success("Modifications enregistrées avec succès !")
+          st.rerun()
+        except Exception as e:
+          st.error(f"Erreur lors de l'enregistrement : {e}")
+
+    # --- 2E BOUTON : APPARAÎT UNIQUEMENT SI DES LIGNES SONT COCHÉES ---
+    with col2:
+      if not rows_to_delete.empty:
+        count_del = len(rows_to_delete)
+        if st.button(
+            f"🗑️ Confirmer la suppression ({count_del} sélectionné(s))",
+            type="secondary",
+        ):
+          try:
+            for _, row in rows_to_delete.iterrows():
+              row_id = row["id"]
+              if not pd.isna(row_id):
+                run_query("DELETE FROM object WHERE id = %s", (int(row_id),))
+            st.warning(
+                f"{count_del} objet(s) supprimé(s) de la base de données !"
             )
-
-        st.success("Modifications enregistrées avec succès dans la base !")
-        st.rerun()
-      except Exception as e:
-        st.error(f"Erreur lors de l'enregistrement : {e}")
-
-    st.markdown("---")
-    st.subheader("Suppression multiple")
-
-    ids_disponibles = df["id"].tolist()
-    ids_to_delete = st.multiselect(
-        "Sélectionner les ID des objets à supprimer",
-        options=ids_disponibles,
-        key="multiselect_del_stock",
-    )
-
-    if st.button("🗑️ Supprimer les objets sélectionnés", type="secondary"):
-      if ids_to_delete:
-        for obj_id in ids_to_delete:
-          run_query("DELETE FROM object WHERE id = %s", (obj_id,))
-        st.warning(f"Objets avec les ID {ids_to_delete} supprimés avec succès !")
-        st.rerun()
+            st.rerun()
+          except Exception as e:
+            st.error(f"Erreur lors de la suppression : {e}")
       else:
-        st.info("Aucun objet sélectionné pour la suppression.")
+        st.info("Cochez 'Supprimer' sur une ligne pour afficher l'option.")
 
   else:
     st.info("Le stockage est actuellement vide.")
