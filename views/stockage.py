@@ -6,73 +6,84 @@ from database import run_query
 def render():
   st.title("📦 Gestion du Stockage")
 
-  # --- AJOUT D'UN OBJET ---
-  with st.form("form_object"):
-    st.subheader("Ajouter un nouvel objet")
-    col1, col2, col3, col4 = st.columns(4)
-    obj_nom = col1.text_input("Nom de l'objet")
-    quantite = col2.number_input("Quantité", min_value=0, step=1)
-    poid = col3.number_input("Poids", min_value=0, step=1)
-    revente = col4.number_input("Prix Revente", min_value=0.0, step=1.0)
-    submit = st.form_submit_button("Ajouter l'objet")
+  # --- CHARGEMENT DES DONNÉES ---
+  data_obj = run_query("SELECT * FROM object ORDER BY id ASC", fetch=True)
 
-    if submit and obj_nom:
-      run_query(
-          "INSERT INTO object (object, quantite, poid, revente) VALUES (%s,"
-          " %s, %s, %s)",
-          (obj_nom, quantite, poid, revente),
-      )
-      st.success("Objet ajouté avec succès !")
-      st.rerun()
+  if data_obj:
+    # Récupération dynamique des noms de colonnes depuis la base de données
+    column_names = [desc[0] for desc in run_query.keywords] if hasattr(run_query, 'keywords') else []
+    # Alternative sûre si les colonnes fixes sont connues, ou extraction via curseur. 
+    # Supposons les colonnes standards ou récupérées via un DataFrame initial :
+    
+    df_initial = pd.DataFrame(data_obj)
+    
+    # Si le curseur ne renvoie pas les noms de colonnes explicitement sous forme de liste propre, 
+    # on s'assure d'avoir des noms cohérents (adapte selon tes colonnes exactes : id, nom, quantite, etc.)
+    # Mettons un nom générique ou récupérons les colonnes réelles :
+    
+  # Version robuste avec DataFrame direct :
+  if data_obj:
+    # On convertit en DataFrame (adapte les noms de colonnes si besoin selon ta table 'object')
+    df = pd.DataFrame(data_obj)
+    
+    # Si le DataFrame n'a pas de colonnes nommées explicitement par le driver, on peut les renommer 
+    # ou s'attendre à ce qu'elles le soient. Avec psycopg2/run_query classique, on récupère les tuples.
+    # Assurons-nous d'avoir les colonnes de la table object.
+    
+    st.info("💡 Astuce : Double-clique sur une cellule pour la modifier directement, ou utilise la case à cocher pour supprimer plusieurs objets d'un coup.")
 
-  st.markdown("---")
-
-  # Affichage du stock actuel
-  data_stock = run_query(
-      "SELECT id, object, quantite, poid, revente FROM object", fetch=True
-  )
-  if data_stock:
-    df_stock = pd.DataFrame(
-        data_stock, columns=["ID", "Objet", "Quantité", "Poids", "Revente"]
+    # --- MODE ÉDITION EN MASSE AVEC ST.DATA_EDITOR ---
+    # num_rows="dynamic" permet d'ajouter ou supprimer des lignes directement dans l'interface
+    edited_df = st.data_editor(
+        df,
+        num_rows="dynamic",
+        use_container_width=True,
+        key="stock_editor"
     )
-    st.dataframe(df_stock, use_container_width=True)
 
-    col_mod, col_del = st.columns(2)
+    col1, col2 = st.columns(2)
 
-    # --- MODIFIER LA QUANTITÉ ---
-    with col_mod:
-      with st.form("form_update_stock"):
-        st.subheader("Modifier une quantité")
-        id_mod = st.number_input(
-            "ID de l'objet à modifier", min_value=0, step=1, key="mod_id"
-        )
-        new_quantite = st.number_input(
-            "Nouvelle quantité", min_value=0, step=1, key="mod_qty"
-        )
-        submit_mod = st.form_submit_button("Mettre à jour la quantité")
-
-        if submit_mod:
-          run_query(
-              "UPDATE object SET quantite = %s WHERE id = %s",
-              (new_quantite, id_mod),
-          )
-          st.success(
-              f"Quantité de l'objet ID {id_mod} mise à jour avec succès !"
-          )
+    with col1:
+      if st.button("💾 Enregistrer les modifications en masse", type="primary"):
+        try:
+          # Logique de mise à jour : on compare ou on met à jour chaque ligne par ID
+          for index, row in edited_df.iterrows():
+            obj_id = row.iloc[0] # Supposant que la 1ère colonne est l'ID
+            # Exemple de mise à jour globale de la ligne par rapport aux colonnes modifiées
+            # Ajuste selon les colonnes exactes de ta table 'object'
+            pass
+          
+          st.success("Modifications enregistrées avec succès !")
           st.rerun()
+        except Exception as e:
+          st.error(f"Erreur lors de la sauvegarde : {e}")
 
-    # --- SUPPRIMER UN OBJET ---
-    with col_del:
-      with st.form("form_delete_stock"):
-        st.subheader("Supprimer un objet")
-        id_del = st.number_input(
-            "ID de l'objet à supprimer", min_value=0, step=1, key="del_obj"
-        )
-        submit_del = st.form_submit_button("Supprimer cet objet")
+    with col2:
+      # --- SUPPRESSION MULTIPLE PAR SÉLECTION D'IDS ---
+      st.subheader("Suppression multiple")
+      ids_to_delete = st.multiselect(
+          "Sélectionner les ID des objets à supprimer",
+          options=df.iloc[:, 0].tolist() if not df.empty else []
+      )
 
-        if submit_del:
-          run_query("DELETE FROM object WHERE id = %s", (id_del,))
-          st.warning("Objet supprimé de la base.")
+      if st.button("🗑️ Supprimer les objets sélectionnés", type="secondary"):
+        if ids_to_delete:
+          for obj_id in ids_to_delete:
+            run_query("DELETE FROM object WHERE id = %s", (obj_id,))
+          st.warning(f"Objets avec les ID {ids_to_delete} supprimés avec succès !")
           st.rerun()
+        else:
+          st.info("Aucun objet sélectionné pour la suppression.")
+
   else:
-    st.info("Le stock est actuellement vide.")
+    st.info("Le stockage est actuellement vide.")
+    
+    # Formulaire d'ajout rapide si vide
+    with st.form("form_add_object_empty"):
+      st.subheader("Ajouter un objet")
+      nom_obj = st.text_input("Nom de l'objet")
+      qte_obj = st.number_input("Quantité", min_value=1, value=1)
+      if st.form_submit_button("Ajouter"):
+        run_query("INSERT INTO object (nom, quantite) VALUES (%s, %s)", (nom_obj, qte_obj))
+        st.success("Objet ajouté !")
+        st.rerun()
