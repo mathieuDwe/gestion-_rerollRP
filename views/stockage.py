@@ -24,29 +24,35 @@ def render():
   if data_obj:
     df = pd.DataFrame(data_obj, columns=column_names)
 
-    # Ajout d'une colonne de sélection (checkbox) tout au début du tableau
+    # Ajout de la colonne de suppression au début
     df.insert(0, "🗑️ Supprimer", False)
 
     st.info(
-        "💡 Modifie les cellules directement dans le tableau, ou coche la"
-        " case **🗑️ Supprimer** sur les lignes de ton choix."
+        "💡 **Astuce** : Ajoute une ligne en bas du tableau (l'ID se créera"
+        " tout seul), modifie les cellules, ou coche **🗑️ Supprimer** pour"
+        " effacer des lignes."
     )
 
-    # --- TABLEAU INTERACTIF AVEC CHECKBOXES DE SUPPRESSION ---
+    # Configuration des colonnes pour bloquer l'ID (géré par la BDD)
+    column_config = {
+        "🗑️ Supprimer": st.column_config.CheckboxColumn(
+            "Supprimer ?", default=False
+        ),
+        "id": st.column_config.NumberColumn(
+            "ID (Auto)", disabled=True, help="Généré automatiquement par la base"
+        ),
+    }
+
+    # --- TABLEAU INTERACTIF ---
     edited_df = st.data_editor(
         df,
         num_rows="dynamic",
         use_container_width=True,
         key="stock_editor",
-        column_config={
-            "🗑️ Supprimer": st.column_config.CheckboxColumn(
-                "Supprimer ?", default=False
-            ),
-            "id": st.column_config.NumberColumn("ID", disabled=True),
-        },
+        column_config=column_config,
     )
 
-    # Détection des lignes cochées pour la suppression
+    # Récupération des lignes cochées pour suppression
     rows_to_delete = (
         edited_df[edited_df["🗑️ Supprimer"] == True]
         if "🗑️ Supprimer" in edited_df.columns
@@ -55,7 +61,7 @@ def render():
 
     col1, col2 = st.columns(2)
 
-    # --- 1ER BOUTON : ENREGISTRER LES MODIFICATIONS ---
+    # --- BOUTON : ENREGISTRER (MODIFICATIONS & NOUVEAUX ITEMS) ---
     with col1:
       if st.button("💾 Enregistrer les modifications", type="primary"):
         try:
@@ -64,7 +70,7 @@ def render():
           for _, row in edited_df.iterrows():
             row_id = row["id"]
 
-            # Si la ligne est cochée pour suppression, on ignore la mise à jour
+            # Si la ligne est cochée pour suppression, on passe
             if (
                 "🗑️ Supprimer" in row
                 and row["🗑️ Supprimer"] == True
@@ -73,7 +79,7 @@ def render():
               continue
 
             if pd.isna(row_id):
-              # Nouvelle ligne ajoutée
+              # --- NOUVELLE LIGNE : L'ID EST IGNORÉ POUR LAISSER LA BDD LE GÉNÉRER ---
               cols_to_insert = [
                   c for c in column_names if c != "id" and not pd.isna(row[c])
               ]
@@ -86,7 +92,7 @@ def render():
                     values,
                 )
             else:
-              # Mise à jour d'une ligne existante
+              # --- MISE À JOUR D'UNE LIGNE EXISTANTE ---
               set_clause = ", ".join(
                   [f'"{col}" = %s' for col in updatable_cols]
               )
@@ -96,12 +102,14 @@ def render():
                   tuple(values),
               )
 
-          st.success("Modifications enregistrées avec succès !")
+          st.success(
+              "Modifications et nouveaux objets enregistrés avec succès !"
+          )
           st.rerun()
         except Exception as e:
           st.error(f"Erreur lors de l'enregistrement : {e}")
 
-    # --- 2E BOUTON : APPARAÎT UNIQUEMENT SI DES LIGNES SONT COCHÉES ---
+    # --- BOUTON : SUPPRESSION MULTIPLE (APPARAÎT SI COCHÉ) ---
     with col2:
       if not rows_to_delete.empty:
         count_del = len(rows_to_delete)
@@ -114,9 +122,7 @@ def render():
               row_id = row["id"]
               if not pd.isna(row_id):
                 run_query("DELETE FROM object WHERE id = %s", (int(row_id),))
-            st.warning(
-                f"{count_del} objet(s) supprimé(s) de la base de données !"
-            )
+            st.warning(f"{count_del} objet(s) supprimé(s) avec succès !")
             st.rerun()
           except Exception as e:
             st.error(f"Erreur lors de la suppression : {e}")
@@ -126,7 +132,7 @@ def render():
   else:
     st.info("Le stockage est actuellement vide.")
 
-    # --- FORMULAIRE D'AJOUT RAPIDE SI VIDE ---
+    # --- FORMULAIRE D'AJOUT SI LA TABLE EST VIDE ---
     with st.form("form_add_object_empty"):
       st.subheader("Ajouter un objet")
       non_id_cols = [c for c in column_names if c != "id"]
@@ -142,5 +148,5 @@ def render():
         run_query(
             f"INSERT INTO object ({cols_str}) VALUES ({placeholders})", values
         )
-        st.success("Objet ajouté avec succès !")
+        st.success("Objet ajouté avec succès (ID auto-généré) !")
         st.rerun()
